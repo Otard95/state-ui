@@ -1,0 +1,27 @@
+{
+  "name": "@ui.js/extra",
+  "version": "1.0.0",
+  "description": "Extra utilities for @ui.js/core",
+  "main": "lib/index.js",
+  "scripts": {
+    "comp": "tsc -p .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "js",
+    "ui",
+    "dom",
+    "framework",
+    "plugin"
+  ],
+  "author": "Stian Myklebostad (https://github.com/Otard95)",
+  "license": "MIT",
+  "peerDependencies": {
+    "@ui.js/core": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.23",
+    "@ui.js/core": "file:../core",
+    "typescript": "4.6.3"
+  }
+}

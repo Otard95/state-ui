@@ -1,0 +1,24 @@
+{
+  "name": "@ui.js/core",
+  "version": "1.0.0",
+  "description": "Simple lightweight DOM tools",
+  "main": "lib/index.js",
+  "scripts": {
+    "start": "parcel test/index.html",
+    "comp": "tsc -p .",
+    "comp:watch": "tsc -p . --watch",
+    "test": "tsc -p . -noEmit"
+  },
+  "keywords": [
+    "UI",
+    "DOM"
+  ],
+  "author": "Stian Myklebostad (https://github.com/Otard95)",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "17.0.21",
+    "parcel": "^2.4.0",
+    "typescript": "4.6.2"
+  },
+  "dependencies": {}
+}
