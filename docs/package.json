@@ -4,14 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "serve": "parcel src/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "UNLICENSED",
-  "dependencies": {
-    "@ui.js/core": "^1.0.0",
-    "@ui.js/extra": "^1.0.0"
-  },
   "devDependencies": {
     "parcel": "2.4.0",
     "typescript": "4.6.3"

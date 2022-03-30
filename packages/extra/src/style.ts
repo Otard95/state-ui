@@ -1,141 +1,206 @@
-import { State } from '@ui.js/core/lib/types'
-import { utils } from '@ui.js/core'
-
-const { id } = utils
+import { Attrib, State } from '@ui.js/core/lib/types'
+import { createAttrib, utils } from '@ui.js/core'
+import {createTransformState} from '.'
 
 type StyleVariables<T> = string | number | ((props: T) => string | number)
-const resolveStyleString = <T>(
-  id: string,
+interface BasicStyleNode {
+  type: 'basic'
+  selector: string
+  property: string
+  value: string
+}
+interface DynamicStyleNode<T> {
+  type: 'dynamic'
+  selector: string
+  property: string
+  template: string
+  variable: StyleVariables<T>
+}
+type StyleNode<T> = BasicStyleNode | DynamicStyleNode<T>
+
+const finishNode = <T>(node: Partial<StyleNode<T>>, acc: string) => {
+  switch (node.type) {
+    case 'basic':
+      node.value = acc.trim()
+      break
+    case 'dynamic':
+      node.template = `${node.template || ''}${acc.trimEnd()}`
+      break
+  }
+}
+const newNode = <T>(
+  base: Partial<StyleNode<T>>
+): Partial<StyleNode<T>> => ({...base, type: 'basic'})
+
+const parseStyles = <T>(
+  selector: string,
   css: TemplateStringsArray,
   variables: StyleVariables<T>[],
-  context: T
-): string => {
-  if (css.length === 0) { return "" }
-  if (css.length - variables.length !== 1) {
-    throw new Error("[style] Unexpected error, invalid ratio of strings to expressions in tag template")
-  }
+  pos: {i: number, j: number} = { i: 0, j: 0 },
+): StyleNode<T>[] => {
+  let style: StyleNode<T>[] = []
 
-  let style: string = ''
+  let acc = ''
+  let node: Partial<StyleNode<T>> = newNode({ selector })
+  for (let i = pos.i; i < css.length; i++) {
+    const cssPart = css[i]
+    for (let j = pos.j; j < cssPart.length; j++) {
+      const char = cssPart[j]
+      switch (char) {
+        case ':':
+          if (acc[Math.max(acc.length - 1, 0)] === '&') {
+            acc += char
+            break
+          }
+          node.property = acc.trim()
+          acc = ''
+          break
+        case ';':
+          finishNode(node, acc)
+          acc = ''
+          style.push(node as StyleNode<T>)
+          node = newNode({ selector })
+          break
+        case '{':
+          const subPos = { i, j: j + 1 }
+          style.push(...parseStyles(
+            `${selector} ${acc.trim()}`,
+            css,
+            variables,
+            subPos
+          ))
+          acc = ''
+          i = subPos.i
+          j = subPos.j
+          break
+        case '}':
+          if (node.property && !((node as BasicStyleNode).value || (node as DynamicStyleNode<T>).template))
+            throw new Error(`Unexpected '}' in value of property ${node.property}`)
+          if (acc.trim().length > 0)
+            throw new Error(`Unexpected '}' near property ${style[style.length-1].property}`)
+          pos.i = i
+          pos.j = j + 1
+          return style
+        default:
+          acc += char
+      }
+    }
+    if (!node.property && i < css.length - 1)
+      throw new Error('Unexpected end of css')
+    if (node.property && node.type === 'dynamic')
+      throw new Error('A single property may only have one dynamic variable')
 
-  for (let i = 0; i < variables.length; i++) {
-    const cssPart = css[i + 1]
-    const variable = variables[i]
-
-    style += `${typeof variable === 'function'
-      ? variable(context)
-      : variable
-    }${cssPart}`
-  }
-
-  return `.${id} {${css[0]}${style}}`
-}
-
-interface StyleNode {
-  selector: string
-  css: string
-}
-const parseStyles = (
-  css: string,
-  path: string[],
-): StyleNode[] => {
-  let style: StyleNode[] = []
-
-  const lines: string[] = []
-  let current = ''
-  for (let i = 0; i < css.length; i++) {
-    const char = css[i]
-    switch (char) {
-      case '\n':
-        lines.push(current)
-        current = ''
-        break
-      case '{':
-        style.push(...parseStyles(css.slice(i+1), [...path, current]))
-        current = ''
-        i += css.slice(i+1).indexOf('}')
-        if (i === -1) {
-          throw new Error("[style] Unexpected error, no closing brace found")
-        }
-        break
-      case '}':
-        lines.push(current)
-        style.push({
-          selector: path.join(' '),
-          css: lines.join('\n')
-        })
-        return style
-      default:
-        current += char
+    if (node.property) {
+      node.type = 'dynamic'
+      ;(node as DynamicStyleNode<T>).variable = variables[i]
+      ;(node as DynamicStyleNode<T>).template = `${acc.trimStart()}{{var}}`
+      acc = ''
     }
   }
-  style.push({
-    selector: path.join(' '),
-    css: current
-  })
 
   return style
 }
 
-const compileStyles = (
-  styles: StyleNode[],
-): string => {
-  let css: string[] = []
-  for (const style of styles) {
-    if (style.selector !== '') {
-      const selector = style.selector.replace(/\s+/, ' ').replace(/([\w]+) +&:/, '$1:').trim()
-      css.push(`${selector} {${style.css}}`)
+const resolveSelector = (selector: string): string => {
+  if (selector.includes('&'))
+    return resolveSelector(selector.replace(/\s*&/, ''))
+  return `.${selector}`
+}
+
+const resolveDynamicValue = <T>(node: DynamicStyleNode<T>, context: T): string => {
+  const { template, variable } = node
+  if (typeof variable === 'function')
+    return template.replace('{{var}}', String(variable(context)))
+  return template.replace('{{var}}', String(variable))
+}
+
+const compileStyles = <T>(styles: StyleNode<T>[], dynamic?: { context: T, append: string }): string => {
+  const styleBySelector: { [selector: string]: string[] } = {}
+  styles.forEach(node => {
+    if (node.type === 'basic') {
+      const { selector, property, value } = node
+      if (!(selector in styleBySelector))
+        styleBySelector[selector] = []
+      styleBySelector[selector].push(`${property}: ${value};`)
+    } else {
+      if (!dynamic) throw new Error('Dynamic styles require a state')
+      const { selector, property } = node
+      const sel = `${dynamic.append}.${selector}`
+      if (!(sel in styleBySelector))
+        styleBySelector[sel] = []
+      styleBySelector[sel].push(
+        `${property}: ${resolveDynamicValue(node, dynamic.context)};`
+      )
     }
-  }
-  return css.join('\n')
+  })
+  return Object.entries(styleBySelector)
+    .map(([selector, styles]) =>
+      `${resolveSelector(selector)} {\n${styles.map(s => `  ${s};`).join('\n')}\n}`
+    )
+    .join('\n')
+}
+
+interface StyleElement {
+  element: HTMLStyleElement
+  content: Text
+}
+const createStyleElement = (id: string, content: string): StyleElement => {
+    const styleElement = document.createElement('style')
+    styleElement.setAttribute('id', id)
+
+    let styleTextNode = document.createTextNode(content)
+    styleElement.appendChild(styleTextNode)
+
+    return { element: styleElement, content: styleTextNode }
+}
+
+const updateStyleElement = (element: StyleElement, content: string) => {
+  const newTextNode = document.createTextNode(content)
+  element.element.replaceChild(newTextNode, element.content)
+  element.content = newTextNode
 }
 
 const createStyle = <T>(
   css: TemplateStringsArray,
   ...variables: StyleVariables<T>[]
-) =>
-  (state?: State<T>): string => {
-    const styleId = id('UI_STYLE_')
+) => {
 
-    const styleElement = document.createElement('style')
-    styleElement.setAttribute('id', styleId)
+  const styleId = utils.id('UI_STYLE_')
 
-    let styleTextNode = document.createTextNode(
+  const styleNodes = parseStyles(styleId, css, variables)
+  const staticStyleNodes = styleNodes.filter(node => node.type === 'basic')
+  const dynamicStyleNodes = styleNodes.filter(node => node.type === 'dynamic')
+
+  const staticStyle = createStyleElement(styleId, compileStyles(staticStyleNodes))
+  document.head.appendChild(staticStyle.element)
+
+  return (state?: State<T>): string => {
+    if (!state) return `class="${styleId}"`
+
+    const dynamicId = utils.id('UI_STYLE_DYNAMIC_')
+    const dynamicStyle = createStyleElement(
+      dynamicId,
       compileStyles(
-        parseStyles(
-          resolveStyleString(
-            styleId,
-            css,
-            variables,
-            (state && state.value) as T
-          ),
-          []
-        )
+        dynamicStyleNodes,
+        {
+          context: state.value,
+          append: dynamicId
+        }
       )
     )
-    styleElement.appendChild(styleTextNode)
-    document.head.appendChild(styleElement)
+    document.head.appendChild(dynamicStyle.element)
 
-    state && state.on('change', () => {
-      const newStyleTextNode = document.createTextNode(
-        compileStyles(
-          parseStyles(
-            resolveStyleString(
-              styleId,
-              css,
-              variables,
-              (state && state.value) as T
-            ),
-            []
-          )
-        )
-      )
-      styleElement.replaceChild(
-        newStyleTextNode,
-        styleTextNode
-      )
-      styleTextNode = newStyleTextNode
+    state.on('change', newVal => {
+      updateStyleElement(dynamicStyle, compileStyles(
+        dynamicStyleNodes,
+        {
+          context: newVal,
+          append: dynamicId
+        }
+      ))
     })
 
-    return `class="${styleId}"`
+    return `class="${styleId} ${dynamicId}"`
   }
-  export default createStyle
+}
+export default createStyle

@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "comp": "tsc -p .",
+    "comp:watch": "tsc -p . --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -21,7 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "^17.0.23",
-    "@ui.js/core": "file:../core",
+    "@ui.js/core": "^1.0.0",
     "typescript": "4.6.3"
   }
 }
