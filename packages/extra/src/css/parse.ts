@@ -40,7 +40,7 @@ export const parseStyles = <T>(
   let node: Partial<StyleNode<T>> = newNode({ selector })
   for (let i = pos.i; i < css.length; i++) {
     const cssPart = css[i]
-    for (let j = pos.j; j < cssPart.length; j++) {
+    for (let j = i === pos.i ? pos.j : 0; j < cssPart.length; j++) {
       const char = cssPart[j]
       switch (char) {
         case ':':
