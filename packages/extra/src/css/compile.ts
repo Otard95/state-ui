@@ -36,6 +36,7 @@ export const compileStyles = <T>(styles: StyleNode<T>[], dynamic?: { context: T,
     }
   })
   return Object.entries(styleBySelector)
+    .filter(([selector]) => selector.length > 0)
     .map(([selector, styles]) =>
       `${resolveSelector(selector)} {\n${styles.map(s => `  ${s};`).join('\n')}\n}`
     )

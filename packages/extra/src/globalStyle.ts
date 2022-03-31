@@ -10,24 +10,24 @@ import {
   updateStyleElement,
 } from './css/elements'
 
-const createStyle = <T>(
+const createGlobalStyle = <T>(
   css: TemplateStringsArray,
   ...variables: StyleVariables<T>[]
 ) => {
 
-  const styleId = utils.id('UI_STYLE_')
+  const styleId = utils.id('UI_GLOBAL_STYLE_')
 
-  const styleNodes = parseStyles(styleId, css, variables)
+  const styleNodes = parseStyles('', css, variables)
   const staticStyleNodes = styleNodes.filter(node => node.type === 'basic')
   const dynamicStyleNodes = styleNodes.filter(node => node.type === 'dynamic')
 
   const staticStyle = createStyleElement(styleId, compileStyles(staticStyleNodes))
   document.head.appendChild(staticStyle.element)
 
-  return (state?: State<T>): string => {
-    if (!state) return `class="${styleId}"`
+  return (state?: State<T>): void => {
+    if (!state) return
 
-    const dynamicId = utils.id('UI_STYLE_DYNAMIC_')
+    const dynamicId = utils.id('UI_GLOBAL_STYLE_DYNAMIC_')
     const dynamicStyle = createStyleElement(
       dynamicId,
       compileStyles(
@@ -49,8 +49,6 @@ const createStyle = <T>(
         }
       ))
     })
-
-    return `class="${styleId} ${dynamicId}"`
   }
 }
-export default createStyle
+export default createGlobalStyle
