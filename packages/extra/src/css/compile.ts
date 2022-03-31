@@ -18,23 +18,30 @@ const resolveDynamicValue = <T>(node: DynamicStyleNode<T>, context: T): string =
 
 export const compileStyles = <T>(styles: StyleNode<T>[], dynamic?: { context: T, append?: string }): string => {
   const styleBySelector: { [selector: string]: string[] } = {}
+
   styles.forEach(node => {
     if (node.type === 'basic') {
       const { selector, property, value } = node
+
       if (!(selector in styleBySelector))
         styleBySelector[selector] = []
+
       styleBySelector[selector].push(`${property}: ${value};`)
     } else {
       if (!dynamic) throw new Error('Dynamic styles require a state')
+
       const { selector, property } = node
-      const sel = `${dynamic.append && ''}.${selector}`
+      const sel = `${dynamic.append ? dynamic.append : ''}.${selector}`
+
       if (!(sel in styleBySelector))
         styleBySelector[sel] = []
+
       styleBySelector[sel].push(
         `${property}: ${resolveDynamicValue(node, dynamic.context)};`
       )
     }
   })
+
   return Object.entries(styleBySelector)
     .filter(([selector]) => selector.length > 0)
     .map(([selector, styles]) =>
