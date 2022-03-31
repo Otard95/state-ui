@@ -1,18 +1,20 @@
 {
   "name": "@state-ui/core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple lightweight DOM tools",
   "main": "lib/index.js",
   "scripts": {
     "start": "parcel test/index.html",
     "comp": "tsc -p .",
     "comp:watch": "tsc -p . --watch",
+    "publish": "npm run comp && npm publish --access public",
     "test": "tsc -p . -noEmit"
   },
   "keywords": [
-    "UI",
-    "DOM",
-    "JS"
+    "ui",
+    "dom",
+    "js",
+    "framework"
   ],
   "author": "Stian Myklebostad (https://github.com/Otard95)",
   "license": "MIT",
