@@ -1,5 +1,5 @@
-import { State } from '@ui.js/core/lib/types'
-import { createState } from '@ui.js/core'
+import { State } from '@state-ui/core/lib/types'
+import { createState } from '@state-ui/core'
 
 const createTransformState = <F, T>(
   state: State<F>,

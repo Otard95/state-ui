@@ -1,5 +1,5 @@
 {
-  "name": "@ui.js/core",
+  "name": "@state-ui/core",
   "version": "1.0.0",
   "description": "Simple lightweight DOM tools",
   "main": "lib/index.js",

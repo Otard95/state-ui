@@ -1,6 +1,6 @@
-import { html } from '@ui.js/core'
-import { createState } from '@ui.js/core'
-import { Component, HTMLElement, State } from '@ui.js/core/lib/types'
+import { html } from '@state-ui/core'
+import { createState } from '@state-ui/core'
+import { Component, HTMLElement, State } from '@state-ui/core/lib/types'
 
 // ## TYPES
 // ### Tokens

@@ -1,7 +1,7 @@
 {
-  "name": "@ui.js/extra",
+  "name": "@state-ui/extra",
   "version": "1.0.0",
-  "description": "Extra utilities for @ui.js/core",
+  "description": "Extra utilities for @state-ui/core",
   "main": "lib/index.js",
   "scripts": {
     "comp": "tsc -p .",
@@ -18,11 +18,11 @@
   "author": "Stian Myklebostad (https://github.com/Otard95)",
   "license": "MIT",
   "peerDependencies": {
-    "@ui.js/core": "^1.0.0"
+    "@state-ui/core": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^17.0.23",
-    "@ui.js/core": "^1.0.0",
+    "@state-ui/core": "^1.0.0",
     "typescript": "4.6.3"
   }
 }

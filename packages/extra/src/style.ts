@@ -1,6 +1,5 @@
-import { Attrib, State } from '@ui.js/core/lib/types'
-import { createAttrib, utils } from '@ui.js/core'
-import {createTransformState} from '.'
+import { State } from '@state-ui/core/lib/types'
+import { utils } from '@state-ui/core'
 
 type StyleVariables<T> = string | number | ((props: T) => string | number)
 interface BasicStyleNode {

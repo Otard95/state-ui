@@ -1,5 +1,5 @@
-import { html } from '@ui.js/core';
-import { createState } from '@ui.js/core';
+import { html } from '@state-ui/core';
+import { createState } from '@state-ui/core';
 // ### END Decision Tree
 // ## END TYPES
 const getQuery = () => {

@@ -1,4 +1,4 @@
-import { createState } from '@ui.js/core';
+import { createState } from '@state-ui/core';
 const createTransformState = (state, transform) => {
     const transformedState = createState(transform(state.value));
     state.on('change', (val) => transformedState.set(transform(val)));

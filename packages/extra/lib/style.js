@@ -1,4 +1,4 @@
-import { utils } from '@ui.js/core';
+import { utils } from '@state-ui/core';
 const finishNode = (node, acc) => {
     switch (node.type) {
         case 'basic':

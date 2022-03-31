@@ -1,11 +1,11 @@
-import { html } from '@ui.js/core'
-import {Component} from '@ui.js/core/lib/types'
+import { html } from '@state-ui/core'
+import {Component} from '@state-ui/core/lib/types'
 import {
   createStyle,
   createHashRouter,
   createTransformState
-} from '@ui.js/extra'
-import { RouteCompArgs, Routes } from '@ui.js/extra/lib/hashRouter'
+} from '@state-ui/extra'
+import { RouteCompArgs, Routes } from '@state-ui/extra/lib/hashRouter'
 
 window.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById('app')
@@ -26,7 +26,7 @@ window.addEventListener('DOMContentLoaded', () => {
     flex-grow: 1;
     text-align: center;
     border-bottom: 2px solid ${active => active ? '#333' : 'transparent'};
-    background-color: $eee;
+    background-color: #eee;
 
     &:hover {
       background-color: #ddd;

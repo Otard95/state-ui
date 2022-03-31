@@ -1,5 +1,5 @@
 {
-  "name": "ui.js-docs",
+  "name": "@state-ui/docs",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,6 +10,8 @@
   "author": "",
   "license": "UNLICENSED",
   "devDependencies": {
+    "@state-ui/core": "^1.0.0",
+    "@state-ui/extra": "^1.0.0",
     "parcel": "2.4.0",
     "typescript": "4.6.3"
   }

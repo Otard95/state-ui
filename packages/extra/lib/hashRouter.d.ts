@@ -1,4 +1,4 @@
-import { Component, HTMLElement, State } from '@ui.js/core/lib/types';
+import { Component, HTMLElement, State } from '@state-ui/core/lib/types';
 export interface RouteCompArgs {
     query: Record<string, string>;
     params: Record<string, string>;
