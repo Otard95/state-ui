@@ -1,6 +1,6 @@
 import { State, StateEvent } from './types.js'
 
-const createState = <T>(initial: T): Readonly<State<T>> => {
+const createState = <T>(initial: T): State<T> => {
   type StateEventHandlerMap = {
     [E in keyof StateEvent<T>]: ((...a: StateEvent<T>[E]) => void)[]
   }
