@@ -32,10 +32,7 @@ const createGlobalStyle = <T>(
       dynamicId,
       compileStyles(
         dynamicStyleNodes,
-        {
-          context: state.value,
-          append: dynamicId
-        }
+        { context: state.value }
       )
     )
     document.head.appendChild(dynamicStyle.element)

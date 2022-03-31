@@ -39,7 +39,7 @@ export const parseStyles = <T>(
   let acc = ''
   let node: Partial<StyleNode<T>> = newNode({ selector })
   for (let i = pos.i; i < css.length; i++) {
-    const cssPart = css[i]
+    let cssPart = css[i]
     for (let j = i === pos.i ? pos.j : 0; j < cssPart.length; j++) {
       const char = cssPart[j]
       switch (char) {
@@ -68,6 +68,7 @@ export const parseStyles = <T>(
           acc = ''
           i = subPos.i
           j = subPos.j
+          cssPart = css[i]
           break
         case '}':
           if (node.property && !((node as BasicStyleNode).value || (node as DynamicStyleNode<T>).template))

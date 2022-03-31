@@ -6,7 +6,7 @@ import {
 const resolveSelector = (selector: string): string => {
   if (selector.includes('&'))
     return resolveSelector(selector.replace(/\s*&/, ''))
-  return `.${selector}`
+  return `${selector}`
 }
 
 const resolveDynamicValue = <T>(node: DynamicStyleNode<T>, context: T): string => {
@@ -16,7 +16,7 @@ const resolveDynamicValue = <T>(node: DynamicStyleNode<T>, context: T): string =
   return template.replace('{{var}}', String(variable))
 }
 
-export const compileStyles = <T>(styles: StyleNode<T>[], dynamic?: { context: T, append: string }): string => {
+export const compileStyles = <T>(styles: StyleNode<T>[], dynamic?: { context: T, append?: string }): string => {
   const styleBySelector: { [selector: string]: string[] } = {}
   styles.forEach(node => {
     if (node.type === 'basic') {
@@ -27,7 +27,7 @@ export const compileStyles = <T>(styles: StyleNode<T>[], dynamic?: { context: T,
     } else {
       if (!dynamic) throw new Error('Dynamic styles require a state')
       const { selector, property } = node
-      const sel = `${dynamic.append}.${selector}`
+      const sel = `${dynamic.append && ''}.${selector}`
       if (!(sel in styleBySelector))
         styleBySelector[sel] = []
       styleBySelector[sel].push(

@@ -1,11 +1,12 @@
 {
   "name": "@state-ui/extra",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Extra utilities for @state-ui/core",
   "main": "lib/index.js",
   "scripts": {
     "comp": "tsc -p .",
     "comp:watch": "tsc -p . --watch",
+    "publish": "npm run comp && npm publish",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

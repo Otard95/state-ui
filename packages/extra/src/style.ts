@@ -17,7 +17,7 @@ const createStyle = <T>(
 
   const styleId = utils.id('UI_STYLE_')
 
-  const styleNodes = parseStyles(styleId, css, variables)
+  const styleNodes = parseStyles(`.${styleId}`, css, variables)
   const staticStyleNodes = styleNodes.filter(node => node.type === 'basic')
   const dynamicStyleNodes = styleNodes.filter(node => node.type === 'dynamic')
 
