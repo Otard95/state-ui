@@ -31,7 +31,7 @@ export const compileStyles = <T>(styles: StyleNode<T>[], dynamic?: { context: T,
       if (!dynamic) throw new Error('Dynamic styles require a state')
 
       const { selector, property } = node
-      const sel = `${dynamic.append ? dynamic.append : ''}.${selector}`
+      const sel = `${dynamic.append ? `${dynamic.append}.` : ''}${selector}`
 
       if (!(sel in styleBySelector))
         styleBySelector[sel] = []
