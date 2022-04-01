@@ -45,7 +45,7 @@ const createStyle = <T>(
         dynamicStyleNodes,
         {
           context: newVal,
-          prepend: dynamicId
+          prepend: `.${dynamicId}`
         }
       ))
     })
