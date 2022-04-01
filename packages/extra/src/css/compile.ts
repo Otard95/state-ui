@@ -16,7 +16,10 @@ const resolveDynamicValue = <T>(node: DynamicStyleNode<T>, context: T): string =
   return template.replace('{{var}}', String(variable))
 }
 
-export const compileStyles = <T>(styles: StyleNode<T>[], dynamic?: { context: T, append?: string }): string => {
+export const compileStyles = <T>(
+  styles: StyleNode<T>[],
+  dynamic?: {context: T, prepend?: string}
+): string => {
   const styleBySelector: { [selector: string]: string[] } = {}
 
   styles.forEach(node => {
@@ -31,7 +34,7 @@ export const compileStyles = <T>(styles: StyleNode<T>[], dynamic?: { context: T,
       if (!dynamic) throw new Error('Dynamic styles require a state')
 
       const { selector, property } = node
-      const sel = `${dynamic.append ? `${dynamic.append}.` : ''}${selector}`
+      const sel = `${dynamic.prepend ? `${dynamic.prepend}` : ''}${selector}`
 
       if (!(sel in styleBySelector))
         styleBySelector[sel] = []

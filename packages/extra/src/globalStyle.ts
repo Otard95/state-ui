@@ -42,7 +42,7 @@ const createGlobalStyle = <T>(
         dynamicStyleNodes,
         {
           context: newVal,
-          append: dynamicId
+          prepend: dynamicId
         }
       ))
     })

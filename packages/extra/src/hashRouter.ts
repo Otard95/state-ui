@@ -1,5 +1,4 @@
-import { html } from '@state-ui/core'
-import { createState } from '@state-ui/core'
+import { html, createState } from '@state-ui/core'
 import { HTMLElement, State } from '@state-ui/core/lib/types'
 
 import { Routes } from './router/types'
