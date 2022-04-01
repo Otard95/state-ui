@@ -27,14 +27,14 @@ const createStyle = <T>(
   return (state?: State<T>): string => {
     if (!state) return `class="${styleId}"`
 
-    const dynamicId = utils.id('.UI_STYLE_DYNAMIC_')
+    const dynamicId = utils.id('UI_STYLE_DYNAMIC_')
     const dynamicStyle = createStyleElement(
       dynamicId,
       compileStyles(
         dynamicStyleNodes,
         {
           context: state.value,
-          prepend: dynamicId
+          prepend: `.${dynamicId}`,
         }
       )
     )
