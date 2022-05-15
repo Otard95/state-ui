@@ -1,13 +1,14 @@
 {
   "name": "@state-ui/extra",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "Extra utilities for @state-ui/core",
   "main": "lib/index.js",
   "scripts": {
     "comp": "tsc -p .",
     "comp:watch": "tsc -p . --watch",
     "pub": "npm run comp && npm publish",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "keywords": [
     "js",
@@ -17,13 +18,21 @@
     "plugin"
   ],
   "author": "Stian Myklebostad (https://github.com/Otard95)",
+  "homepage": "https://github.com/Otard95/state-ui/tree/main/packages/extra",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Otard95/state-ui.git",
+    "directory": "packages/extra"
+  },
   "license": "MIT",
   "peerDependencies": {
     "@state-ui/core": "^1.0.0"
   },
   "devDependencies": {
     "@state-ui/core": "^1.0.2",
+    "@types/jest": "^27.5.1",
     "@types/node": "^17.0.23",
+    "ts-jest": "^28.0.2",
     "typescript": "4.6.3"
   }
 }

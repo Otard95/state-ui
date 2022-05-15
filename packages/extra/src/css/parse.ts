@@ -30,7 +30,7 @@ const newNode = <T>(
 
 export const parseStyles = <T>(
   selector: string,
-  css: TemplateStringsArray,
+  css: readonly string[],
   variables: StyleVariables<T>[],
   pos: {i: number, j: number} = { i: 0, j: 0 },
 ): StyleNode<T>[] => {
@@ -60,7 +60,7 @@ export const parseStyles = <T>(
         case '{':
           const subPos = { i, j: j + 1 }
           style.push(...parseStyles(
-            `${selector} ${acc.trim()}`,
+            `${selector} ${acc.trim()}`.trim(),
             css,
             variables,
             subPos
@@ -82,7 +82,7 @@ export const parseStyles = <T>(
           acc += char
       }
     }
-    if (!node.property && i < css.length - 1)
+    if (acc.trim().length !== 0 && !node.property && i < css.length - 1)
       throw new Error('Unexpected end of css')
     if (node.property && node.type === 'dynamic')
       throw new Error('A single property may only have one dynamic variable')
@@ -91,6 +91,8 @@ export const parseStyles = <T>(
       node.type = 'dynamic'
       ;(node as DynamicStyleNode<T>).variable = variables[i]
       ;(node as DynamicStyleNode<T>).template = `${acc.trimStart()}{{var}}`
+      acc = ''
+    } else if (acc.trim().length !== 0) {
       acc = ''
     }
   }

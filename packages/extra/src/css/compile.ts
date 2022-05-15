@@ -29,7 +29,7 @@ export const compileStyles = <T>(
       if (!(selector in styleBySelector))
         styleBySelector[selector] = []
 
-      styleBySelector[selector].push(`${property}: ${value};`)
+      styleBySelector[selector].push(`${property}: ${value}`)
     } else {
       if (!dynamic) throw new Error('Dynamic styles require a state')
 
@@ -40,7 +40,7 @@ export const compileStyles = <T>(
         styleBySelector[sel] = []
 
       styleBySelector[sel].push(
-        `${property}: ${resolveDynamicValue(node, dynamic.context)};`
+        `${property}: ${resolveDynamicValue(node, dynamic.context)}`
       )
     }
   })
