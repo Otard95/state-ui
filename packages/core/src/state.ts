@@ -19,17 +19,11 @@ const createState = <T>(initial: T): State<T> => {
       __eventHandlers[event].forEach(cb => (cb as Function)(...args))
       return state
     },
-    on: (
-      event,
-      cb
-    ) => {
+    on: (event, cb) => {
       __eventHandlers[event].push(cb as any)
       return state
     },
-    off: (
-      event,
-      cb
-    ) => {
+    off: (event, cb) => {
       const idx = __eventHandlers[event].indexOf(cb)
       if (idx !== -1) {
         __eventHandlers[event].splice(idx, 1)
