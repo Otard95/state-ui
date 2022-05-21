@@ -17,7 +17,7 @@ const createSrcForAttrib = (
 ): string => {
   const attribId = id('UI_ATTRIB_')
   attribs.set(attribId, attrib)
-  return ` data-ui-attr-id="${attribId}" ${attrib.value.name}="${attrib.value.value}"`
+  return ` data-ui-attr-id="${attribId}" ${attrib.name}="${attrib.value}"`
 }
 
 const createSrc = <N extends HTMLElement>(
@@ -74,34 +74,39 @@ const createSrc = <N extends HTMLElement>(
 }
 
 const setupChildren = <N extends HTMLElement>(
-  node: HTMLDivElement,
+  wrapper: HTMLDivElement,
+  node: HTMLElement,
   children: Map<string, N>
 ) => {
   for (const [id, comp] of children) {
-    const child = node.getElementsByTagName(id)[0]
+    const child = wrapper.getElementsByTagName(id)[0]
     if (child === null) {
-      console.debug({ node, id, comp })
+      console.debug({ node: wrapper, id, comp })
       throw new Error(`Could not find child with id ${id}`)
     }
     child.parentNode?.replaceChild(comp.element, child)
     comp.emit('mount')
+    node.on('unmount', () => comp.emit('unmount'))
   }
 }
 
-const setupAttribs = <N extends Element>(
-  node: HTMLDivElement,
+const setupAttribs = (
+  wrapper: HTMLDivElement,
+  node: HTMLElement,
   attribs: Map<string, Attrib>
 ) => {
   for (const [id, attrib] of attribs) {
-    const child = node.querySelector(`[data-ui-attr-id="${id}"]`) as unknown as N
+    const child = wrapper.querySelector(`[data-ui-attr-id="${id}"]`)
     if (child === null) {
-      console.debug({ node, id, attrib })
+      console.debug({ node: wrapper, id, attrib })
       throw new Error(`Could not find child with id ${id}`)
     }
     child.removeAttribute('data-ui-attr-id')
-    attrib.on('change', (v) => {
-      child.setAttribute(attrib.value.name, v.value)
+    attrib.on('change', (newVal) => {
+      child.setAttribute(attrib.name, newVal)
     })
+    attrib.emit('mount')
+    node.on('unmount', () => attrib.emit('unmount'))
   }
 }
 
@@ -121,12 +126,9 @@ const createHTML = <N extends Element>(
   const wrapper = document.createElement('div')
   wrapper.innerHTML = src
 
-  setupChildren(wrapper, children)
-  setupAttribs(wrapper, attribs)
-
   const element: N | Error = wrapper.children.length > 0
     ? wrapper.children[0] as N
-    : wrapper.childNodes.length === 1
+    : wrapper.childNodes.length > 0
       ? wrapper.childNodes[0] as N
       : new Error('Unexpected node')
   if (element instanceof Error) {
@@ -167,6 +169,9 @@ const createHTML = <N extends Element>(
     }
   }
   node.constructor = createHTML
+
+  setupChildren(wrapper, node, children)
+  setupAttribs(wrapper, node, attribs)
 
   return node
 }

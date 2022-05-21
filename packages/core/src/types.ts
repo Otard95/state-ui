@@ -29,8 +29,13 @@ export interface State<T> extends EventEmitter<StateEvent<T>, State<T>> {
 }
 export type StateOf<S> = S extends State<infer T> ? T : never
 
-export type Attrib = Omit<State<{name: string, value: string}>, 'set'> & {
+export type AttribEvents = {
+  change: [string, string]
+  mount: [],
+  unmount: [],
+}
+export interface Attrib extends EventEmitter<AttribEvents, Attrib> {
+  name: string
+  value: string
   set(val: string): void
 }
-
-export type OnClick = {  }
