@@ -2,7 +2,7 @@ import { State, StateEvent } from './types.js'
 
 const createState = <T>(initial: T): State<T> => {
   type StateEventHandlerMap = {
-    [E in keyof StateEvent<T>]: ((...a: StateEvent<T>[E]) => void)[]
+    [E in keyof StateEvent<T>]: ((...args: StateEvent<T>[E]) => void)[]
   }
   const __eventHandlers: StateEventHandlerMap = {
     change: [],
@@ -12,21 +12,25 @@ const createState = <T>(initial: T): State<T> => {
     set: (v: T) => {
       const old = state.value
       state.value = v
-      __eventHandlers.change.forEach(cb => cb(v, old))
+      state.emit('change', v, old)
       return state
     },
-    on: <E extends keyof StateEvent<T>, V extends StateEvent<T>[E]>(
-      event: E,
-      cb: (...v: V) => void
+    emit: (event, ...args) => {
+      __eventHandlers[event].forEach(cb => (cb as Function)(...args))
+      return state
+    },
+    on: (
+      event,
+      cb
     ) => {
       __eventHandlers[event].push(cb as any)
       return state
     },
-    off: <E extends keyof StateEvent<T>, V extends StateEvent<T>[E]>(
-      event: E,
-      cb: (...v: V) => void
+    off: (
+      event,
+      cb
     ) => {
-      const idx = __eventHandlers[event].indexOf(cb as any)
+      const idx = __eventHandlers[event].indexOf(cb)
       if (idx !== -1) {
         __eventHandlers[event].splice(idx, 1)
       }

@@ -1,14 +1,23 @@
-type ElementEvents = {
-  'mount': [],
-  'unmount': [],
+export type ElementEvents = {
+  mount: [],
+  unmount: [],
 }
 
-export type HTMLElement<E = Element> = E & {
-  __events: { [K in keyof ElementEvents]?: ((...args: ElementEvents[K]) => void)[] }
-  replace(newNode: E): HTMLElement<E>
+export type EventEmitter<Events extends Record<string, unknown[]>, E> = {
+  emit: <E extends keyof Events>(event: E, ...args: Events[E]) => void
+  on<Event extends keyof Events>(event: Event, cb: (...args: Events[Event]) => void): E
+  off<Event extends keyof Events>(event: Event, cb: (...args: Events[Event]) => void): E
+}
+
+// export type HTMLElement<E = Element> = E & {
+//   replace(newNode: E): HTMLElement<E>
+//   click(cb:() => void): HTMLElement<E>
+// }// & EventEmitter<ElementEvents, HTMLElement<E>>
+
+export interface HTMLElement<E = Element> extends EventEmitter<ElementEvents, HTMLElement<E>> {
+  element: E
+  replace(newNode: HTMLElement): HTMLElement
   click(cb:() => void): HTMLElement<E>
-  on<Event extends keyof ElementEvents>(event: Event, cb: (...args: ElementEvents[Event]) => void): HTMLElement<E>
-  off<Event extends keyof ElementEvents>(event: Event, cb: (...args: ElementEvents[Event]) => void): HTMLElement<E>
 }
 
 export type Component<
@@ -16,18 +25,12 @@ export type Component<
   N extends HTMLElement = HTMLElement
 > = N | ((props: P) => N)
 
-export interface StateEvent<T> {
+export type StateEvent<T> = {
   change: [T, T]
 }
-export interface State<T> {
+export interface State<T> extends EventEmitter<StateEvent<T>, State<T>> {
   value: T
   set: (v: T) => State<T>
-  on: <E extends keyof StateEvent<T>, V extends StateEvent<T>[E]>(
-    event: E, cb: (...v: V) => void
-  ) => State<T>
-  off: <E extends keyof StateEvent<T>, V extends StateEvent<T>[E]>(
-    event: E, cb: (...v: V) => void
-  ) => State<T>
 }
 export type StateOf<S> = S extends State<infer T> ? T : never
 

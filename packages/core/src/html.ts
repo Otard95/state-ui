@@ -1,8 +1,8 @@
 import { isAttrib } from './attrib.js'
-import { HTMLElement, Attrib } from './types'
+import { HTMLElement, Attrib, ElementEvents } from './types'
 import { id } from './utils.js'
 
-const createSrcForNode = <N extends Element>(
+const createSrcForNode = <N extends HTMLElement>(
   node: N,
   children: Map<string, N>,
 ): string => {
@@ -20,7 +20,7 @@ const createSrcForAttrib = (
   return ` data-ui-attr-id="${attribId}" ${attrib.value.name}="${attrib.value.value}"`
 }
 
-const createSrc = <N extends Element>(
+const createSrc = <N extends HTMLElement>(
   children: Map<string, N>,
   attribs: Map<string, Attrib>,
   html: TemplateStringsArray,
@@ -34,13 +34,13 @@ const createSrc = <N extends Element>(
     if (c === undefined || c === null) {
       continue
     }
-    if (c instanceof Node) {
+    if (isHtml(c)) {
       src += `${createSrcForNode(c, children)}${next}`
       continue
     }
     if (Array.isArray(c)) {
       c.forEach(cc => {
-        if (!(cc instanceof Node))
+        if (!isHtml(cc))
           throw new Error(
             `The 'html' template tag expects its expressions to be nodes, an array of nodes, attributes or simple values like a 'string', 'number' or 'boolean', but got '${typeof cc}[]'.`
           )
@@ -83,8 +83,8 @@ const setupChildren = <N extends HTMLElement>(
       console.debug({ node, id, comp })
       throw new Error(`Could not find child with id ${id}`)
     }
-    child.parentNode?.replaceChild(comp, child)
-    child.__events['mount']?.forEach(cb => cb())
+    child.element.parentNode?.replaceChild(comp.element, child.element)
+    child.emit('mount')
   }
 }
 
@@ -105,11 +105,11 @@ const setupAttribs = <N extends Element>(
   }
 }
 
-export default <N extends HTMLElement>(
+const createHTML = <N extends Element>(
   html: TemplateStringsArray,
-  ...comp: (N | N[] | Attrib | string | number | boolean | undefined | null)[]
-): N => {
-  const children = new Map<string, N>()
+  ...comp: (HTMLElement<N> | HTMLElement<N>[] | Attrib | string | number | boolean | undefined | null)[]
+): HTMLElement<N> => {
+  const children = new Map<string, HTMLElement<N>>()
   const attribs = new Map<string, Attrib>()
 
   if (html.length === 0) {
@@ -124,38 +124,54 @@ export default <N extends HTMLElement>(
   setupChildren(wrapper, children)
   setupAttribs(wrapper, attribs)
 
-  const node: N | Error = wrapper.children.length > 0
+  const element: N | Error = wrapper.children.length > 0
     ? wrapper.children[0] as N
     : wrapper.childNodes.length === 1
       ? wrapper.childNodes[0] as N
       : new Error('Unexpected node')
-  if (node instanceof Error) {
-    throw node
+  if (element instanceof Error) {
+    throw element
   }
 
-  node.replace = (newNode: HTMLElement) => {
-    node.parentNode?.replaceChild(newNode, node)
-    node.__events['unmount']?.forEach(f => f())
-    newNode.__events['mount']?.forEach(f => f())
-    return newNode as HTMLElement
+  const __eventsHandlers: { [K in keyof ElementEvents]: ((...args: ElementEvents[K]) => void)[] } = {
+    mount: [],
+    unmount: [],
   }
-  node.click = (cb) => {
-    node.addEventListener('click', cb)
-    return node as HTMLElement
+  const node: HTMLElement<N> = {
+    element,
+    replace: (newNode: HTMLElement) => {
+      node.element.parentNode?.replaceChild(newNode.element, node.element)
+      node.emit('unmount')
+      newNode.emit('mount')
+      return newNode
+    },
+    click: (cb) => {
+      node.element.addEventListener('click', cb)
+      return node
+    },
+    emit: (eventName, ...args) => {
+      __eventsHandlers[eventName]?.forEach(f => (f as Function)(...args as any))
+      return node
+    },
+    on: (event, cb) => {
+      if (event in __eventsHandlers[event]) __eventsHandlers[event] = []
+      __eventsHandlers[event]?.push(cb)
+      return node
+    },
+    off: (event, cb) => {
+      if (event in __eventsHandlers) return node
+      const index = __eventsHandlers[event]?.indexOf(cb)
+      if (index === undefined || index === -1) return node
+      __eventsHandlers[event]?.splice(index, 1)
+      return node
+    }
   }
-  node.__events = {}
-  node.on = (event, cb) => {
-    if (event in node.__events[event]) node.__events[event] = []
-    node.__events[event]?.push(cb)
-    return node as HTMLElement
-  }
-  node.off = (event, cb) => {
-    if (event in node.__events) return node as HTMLElement
-    const index = node.__events[event]?.indexOf(cb)
-    if (index === undefined || index === -1) return node as HTMLElement
-    node.__events[event]?.splice(index, 1)
-    return node as HTMLElement
-  }
+  node.constructor = createHTML
 
-  return node as N
+  return node
 }
+export default createHTML
+export const isHtml = (value: unknown): value is HTMLElement =>
+  typeof value === 'object'
+  && value !== null
+  && value.constructor === createHTML
