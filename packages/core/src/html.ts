@@ -40,6 +40,10 @@ const createSrc = <N extends Element>(
     }
     if (Array.isArray(c)) {
       c.forEach(cc => {
+        if (!(cc instanceof Node))
+          throw new Error(
+            `The 'html' template tag expects its expressions to be nodes, an array of nodes, attributes or simple values like a 'string', 'number' or 'boolean', but got '${typeof cc}[]'.`
+          )
         src += `${createSrcForNode(cc, children)}`
       })
       src += next
@@ -69,17 +73,18 @@ const createSrc = <N extends Element>(
   return src
 }
 
-const setupChildren = <N extends Element>(
+const setupChildren = <N extends HTMLElement>(
   node: HTMLDivElement,
   children: Map<string, N>
 ) => {
   for (const [id, comp] of children) {
     const child = node.getElementsByTagName(id)[0] as unknown as N
     if (child === null) {
-      console.log({ node, id, comp })
+      console.debug({ node, id, comp })
       throw new Error(`Could not find child with id ${id}`)
     }
     child.parentNode?.replaceChild(comp, child)
+    child.__events['mount']?.forEach(cb => cb())
   }
 }
 
@@ -90,7 +95,7 @@ const setupAttribs = <N extends Element>(
   for (const [id, attrib] of attribs) {
     const child = node.querySelector(`[data-ui-attr-id="${id}"]`) as unknown as N
     if (child === null) {
-      console.log({ node, id, attrib })
+      console.debug({ node, id, attrib })
       throw new Error(`Could not find child with id ${id}`)
     }
     child.removeAttribute('data-ui-attr-id')
@@ -119,21 +124,36 @@ export default <N extends HTMLElement>(
   setupChildren(wrapper, children)
   setupAttribs(wrapper, attribs)
 
-  const node = wrapper.children.length > 0
-    ? wrapper.children[0]
+  const node: N | Error = wrapper.children.length > 0
+    ? wrapper.children[0] as N
     : wrapper.childNodes.length === 1
-      ? wrapper.childNodes[0]
+      ? wrapper.childNodes[0] as N
       : new Error('Unexpected node')
   if (node instanceof Error) {
     throw node
   }
 
-  ;(node as unknown as N).replace = (newNode: Element) => {
+  node.replace = (newNode: HTMLElement) => {
     node.parentNode?.replaceChild(newNode, node)
+    node.__events['unmount']?.forEach(f => f())
+    newNode.__events['mount']?.forEach(f => f())
     return newNode as HTMLElement
   }
-  ;(node as unknown as N).click = (cb) => {
+  node.click = (cb) => {
     node.addEventListener('click', cb)
+    return node as HTMLElement
+  }
+  node.__events = {}
+  node.on = (event, cb) => {
+    if (event in node.__events[event]) node.__events[event] = []
+    node.__events[event]?.push(cb)
+    return node as HTMLElement
+  }
+  node.off = (event, cb) => {
+    if (event in node.__events) return node as HTMLElement
+    const index = node.__events[event]?.indexOf(cb)
+    if (index === undefined || index === -1) return node as HTMLElement
+    node.__events[event]?.splice(index, 1)
     return node as HTMLElement
   }
 

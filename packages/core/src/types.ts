@@ -1,6 +1,14 @@
+type ElementEvents = {
+  'mount': [],
+  'unmount': [],
+}
+
 export type HTMLElement<E = Element> = E & {
+  __events: { [K in keyof ElementEvents]?: ((...args: ElementEvents[K]) => void)[] }
   replace(newNode: E): HTMLElement<E>
   click(cb:() => void): HTMLElement<E>
+  on<Event extends keyof ElementEvents>(event: Event, cb: (...args: ElementEvents[Event]) => void): HTMLElement<E>
+  off<Event extends keyof ElementEvents>(event: Event, cb: (...args: ElementEvents[Event]) => void): HTMLElement<E>
 }
 
 export type Component<
