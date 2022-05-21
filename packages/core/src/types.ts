@@ -9,11 +9,6 @@ export type EventEmitter<Events extends Record<string, unknown[]>, E> = {
   off<Event extends keyof Events>(event: Event, cb: (...args: Events[Event]) => void): E
 }
 
-// export type HTMLElement<E = Element> = E & {
-//   replace(newNode: E): HTMLElement<E>
-//   click(cb:() => void): HTMLElement<E>
-// }// & EventEmitter<ElementEvents, HTMLElement<E>>
-
 export interface HTMLElement<E = Element> extends EventEmitter<ElementEvents, HTMLElement<E>> {
   element: E
   replace(newNode: HTMLElement): HTMLElement
