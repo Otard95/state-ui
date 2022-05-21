@@ -1,13 +1,13 @@
 {
   "name": "@state-ui/core",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Simple lightweight DOM tools",
   "main": "lib/index.js",
   "scripts": {
     "start": "parcel test/index.html",
     "comp": "tsc -p .",
     "comp:watch": "tsc -p . --watch",
-    "publish": "npm run comp && npm publish --access public",
+    "pub": "npm run comp && npm publish --access public",
     "test": "tsc -p . -noEmit"
   },
   "keywords": [
@@ -17,11 +17,16 @@
     "framework"
   ],
   "author": "Stian Myklebostad (https://github.com/Otard95)",
+  "homepage": "https://github.com/Otard95/state-ui/tree/main/packages/extra",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Otard95/state-ui.git",
+    "directory": "packages/extra"
+  },
   "license": "MIT",
   "devDependencies": {
     "@types/node": "17.0.21",
     "parcel": "^2.4.0",
     "typescript": "4.6.2"
-  },
-  "dependencies": {}
+  }
 }
