@@ -15,6 +15,11 @@ for example [Grecha.js](https://github.com/tsoding/grecha.js).
 But I'd prefer to sacrifice just a little bit of that performance
 for convenience.
 
+## Current state
+
+This package and its companion `@state-ui/extra` are still in active development
+and you should expect breaking changes to the API.
+
 ## Documentation
 
 > Coming soon
