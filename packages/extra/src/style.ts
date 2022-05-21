@@ -1,5 +1,4 @@
-import { State } from '@state-ui/core/lib/types'
-import { utils } from '@state-ui/core'
+import { utils, State, createAttrib, Attrib } from '@state-ui/core'
 import {
   parseStyles,
   StyleVariables,
@@ -22,10 +21,17 @@ const createStyle = <T>(
   const dynamicStyleNodes = styleNodes.filter(node => node.type === 'dynamic')
 
   const staticStyle = createStyleElement(styleId, compileStyles(staticStyleNodes))
-  document.head.appendChild(staticStyle.element)
 
-  return (state?: State<T>): string => {
-    if (!state) return `class="${styleId}"`
+  return (state?: State<T>): Attrib => {
+    if (!state) {
+      return createAttrib('class', styleId)
+        .on('unmount', () => {
+          document.head.removeChild(staticStyle.element)
+        })
+        .on('mount', () => {
+          document.head.appendChild(staticStyle.element)
+        })
+    }
 
     const dynamicId = utils.id('UI_STYLE_DYNAMIC_')
     const dynamicStyle = createStyleElement(
@@ -50,7 +56,15 @@ const createStyle = <T>(
       ))
     })
 
-    return `class="${styleId} ${dynamicId}"`
+    return createAttrib('class', `${styleId} ${dynamicId}`) // `class="${styleId} ${dynamicId}"`
+      .on('unmount', () => {
+        document.head.removeChild(staticStyle.element)
+        document.head.removeChild(dynamicStyle.element)
+      })
+      .on('mount', () => {
+        document.head.appendChild(staticStyle.element)
+        document.head.appendChild(dynamicStyle.element)
+      })
   }
 }
 export default createStyle
