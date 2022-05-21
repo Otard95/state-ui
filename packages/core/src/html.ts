@@ -78,13 +78,13 @@ const setupChildren = <N extends HTMLElement>(
   children: Map<string, N>
 ) => {
   for (const [id, comp] of children) {
-    const child = node.getElementsByTagName(id)[0] as unknown as N
+    const child = node.getElementsByTagName(id)[0]
     if (child === null) {
       console.debug({ node, id, comp })
       throw new Error(`Could not find child with id ${id}`)
     }
-    child.element.parentNode?.replaceChild(comp.element, child.element)
-    child.emit('mount')
+    child.parentNode?.replaceChild(comp.element, child)
+    comp.emit('mount')
   }
 }
 
