@@ -140,6 +140,7 @@ const createHTML = <N extends Element>(
     unmount: [],
   }
   const node: HTMLElement<N> = {
+    type: 'html',
     element,
     replace: (newNode: HTMLElement) => {
       node.element.parentNode?.replaceChild(newNode.element, node.element)
@@ -168,7 +169,6 @@ const createHTML = <N extends Element>(
       return node
     }
   }
-  node.constructor = createHTML
 
   setupChildren(wrapper, node, children)
   setupAttribs(wrapper, node, attribs)
@@ -176,7 +176,7 @@ const createHTML = <N extends Element>(
   return node
 }
 export default createHTML
-export const isHtml = (value: unknown): value is HTMLElement =>
-  typeof value === 'object'
-  && value !== null
-  && value.constructor === createHTML
+export const isHtml = (value: any): value is HTMLElement =>
+  value !== null
+  && typeof value === 'object'
+  && value.type === 'html'

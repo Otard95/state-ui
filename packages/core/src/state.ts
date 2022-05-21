@@ -8,6 +8,7 @@ const createState = <T>(initial: T): State<T> => {
     change: [],
   }
   const state: State<T> = {
+    type: 'state',
     value: initial,
     set: (v: T) => {
       const old = state.value
@@ -31,7 +32,6 @@ const createState = <T>(initial: T): State<T> => {
       return state
     },
   }
-  state.constructor = createState
   return state
 }
 export default createState
@@ -39,4 +39,4 @@ export default createState
 export const isState = <T>(state: any): state is State<T> =>
   state !== null
   && typeof state === 'object'
-  && state.constructor === createState
+  && state.type === 'state'

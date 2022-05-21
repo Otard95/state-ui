@@ -10,6 +10,7 @@ export type EventEmitter<Events extends Record<string, unknown[]>, E> = {
 }
 
 export interface HTMLElement<E = Element> extends EventEmitter<ElementEvents, HTMLElement<E>> {
+  type: 'html'
   element: E
   replace(newNode: HTMLElement): HTMLElement
   click(cb:() => void): HTMLElement<E>
@@ -24,6 +25,7 @@ export type StateEvent<T> = {
   change: [T, T]
 }
 export interface State<T> extends EventEmitter<StateEvent<T>, State<T>> {
+  type: 'state'
   value: T
   set: (v: T) => State<T>
 }
@@ -35,6 +37,7 @@ export type AttribEvents = {
   unmount: [],
 }
 export interface Attrib extends EventEmitter<AttribEvents, Attrib> {
+  type: 'attrib'
   name: string
   value: string
   set(val: string): void

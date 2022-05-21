@@ -11,6 +11,7 @@ const createAttrib = (name: string, value: string): Attrib => {
   }
 
   const attrib: Attrib = {
+    type: 'attrib',
     name,
     value,
     set: (value: string) => {
@@ -35,8 +36,6 @@ const createAttrib = (name: string, value: string): Attrib => {
       return attrib
     },
   }
-  attrib.constructor = createAttrib
-
   return attrib
 }
 export default createAttrib
@@ -44,4 +43,4 @@ export default createAttrib
 export const isAttrib = (attrib: any): attrib is Attrib =>
   attrib !== null
   && typeof attrib === 'object'
-  && attrib.constructor === createAttrib
+  && attrib.type === 'attrib'
