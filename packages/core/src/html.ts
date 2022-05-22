@@ -2,9 +2,32 @@ import { isAttrib } from './attrib.js'
 import { HTMLElement, Attrib, ElementEvents } from './types'
 import { id } from './utils.js'
 
-const createSrcForNode = <N extends HTMLElement>(
-  node: N,
-  children: Map<string, N>,
+type Renderable<N> = HTMLElement<N> | HTMLElement<N>[] | Attrib | string | number | boolean | undefined | null
+
+export const isHtml = (value: any): value is HTMLElement =>
+  value !== null
+  && typeof value === 'object'
+  && value.type === 'html'
+
+const isRenderable = <N extends Element>(value: unknown): value is Renderable<N> => {
+  switch (typeof value) {
+    case 'string':
+    case 'number':
+    case 'boolean':
+    case 'undefined':
+      return true
+    case 'object':
+      if (value === null) return true
+      if (Array.isArray(value)) return value.every(isRenderable)
+      if (isHtml(value)) return true
+      if (isAttrib(value)) return true
+  }
+  return false
+}
+
+const createSrcForNode = <N extends Element>(
+  node: HTMLElement<N>,
+  children: Map<string, HTMLElement<N>>,
 ): string => {
   const compId = id('UI_NODE_')
   children.set(compId, node)
@@ -20,55 +43,52 @@ const createSrcForAttrib = (
   return ` data-ui-attr-id="${attribId}" ${attrib.name}="${attrib.value}"`
 }
 
-const createSrc = <N extends HTMLElement>(
-  children: Map<string, N>,
+const createSrcForRenderable = <N extends Element>(
+  renderable: Renderable<N>,
+  children: Map<string, HTMLElement>,
+  attribs: Map<string, Attrib>
+): string => {
+  switch (typeof renderable) {
+    case 'string':
+    case 'number':
+    case 'boolean':
+      return renderable.toString()
+
+    case 'object':
+      if (isHtml(renderable))
+        return createSrcForNode(renderable, children)
+
+      if (Array.isArray(renderable))
+        return renderable.map(
+          r => createSrcForRenderable(r, children, attribs)
+        ).join('')
+
+      if (isAttrib(renderable))
+        return createSrcForAttrib(renderable, attribs)
+
+      return ''
+
+    default:
+      return ''
+  }
+}
+
+const createSrc = <N extends Element>(
+  children: Map<string, HTMLElement>,
   attribs: Map<string, Attrib>,
   html: TemplateStringsArray,
-  comp: (N | N[] | Attrib | string | number | boolean | undefined | null)[]
+  comp: Renderable<N>[]
 ): string => {
   let src = html[0]
   for (let i = 1; i < html.length; i++) {
     const c = comp[i-1]
     const next = html[i]
 
-    if (c === undefined || c === null) {
-      continue
-    }
-    if (isHtml(c)) {
-      src += `${createSrcForNode(c, children)}${next}`
-      continue
-    }
-    if (Array.isArray(c)) {
-      c.forEach(cc => {
-        if (!isHtml(cc))
-          throw new Error(
-            `The 'html' template tag expects its expressions to be nodes, an array of nodes, attributes or simple values like a 'string', 'number' or 'boolean', but got '${typeof cc}[]'.`
-          )
-        src += `${createSrcForNode(cc, children)}`
-      })
-      src += next
-      continue
-    }
-    if (isAttrib(c)) {
-      src += `${createSrcForAttrib(c, attribs)}${next}`
-      continue
-    }
-    if (typeof c === 'string') {
-      src += c
-      src += next
-      continue
-    }
-    if (typeof c === 'number') {
-      src += c.toString()
-      src += next
-      continue
-    }
-    if (typeof c === 'boolean') {
-      src += c ? 'true' : 'false'
-      src += next
-      continue
-    }
-    throw new Error(`Unexpected type ${typeof c} at:\n${src}$$ERROR$$${next}...`)
+    if (!isRenderable(c))
+      throw new Error(`Unexpected type ${typeof c} at:\n\t${
+        src}\${...}${next}...\n\t${' '.repeat(src.length)}^^^^^^`)
+
+    src += `${createSrcForRenderable(c, children, attribs)}${next}`
   }
   return src
 }
@@ -112,7 +132,7 @@ const setupAttribs = (
 
 const createHTML = <N extends Element>(
   html: TemplateStringsArray,
-  ...comp: (HTMLElement<N> | HTMLElement<N>[] | Attrib | string | number | boolean | undefined | null)[]
+  ...comp: Renderable<N>[]
 ): HTMLElement<N> => {
   const children = new Map<string, HTMLElement<N>>()
   const attribs = new Map<string, Attrib>()
@@ -176,7 +196,3 @@ const createHTML = <N extends Element>(
   return node
 }
 export default createHTML
-export const isHtml = (value: any): value is HTMLElement =>
-  value !== null
-  && typeof value === 'object'
-  && value.type === 'html'
