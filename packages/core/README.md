@@ -3,6 +3,17 @@
 A simple lightweight set of tools to work with DOM elements,
 create styles, and states to make it all dynamic.
 
+## Current state
+
+This package and its companion `@state-ui/extra` are still in active development
+and you should expect breaking changes to the API.
+
+## **Security**
+
+These tools where made to be simple, as such there is no inbuilt
+sanitation. Anything given to the `html` template tag **will** be
+interpreted as html **as is**, including script tags and their content.
+
 ## Motivation
 
 When you're working on a small, maybe even medium project,
@@ -14,11 +25,6 @@ Of course there are others who made stuff like this before,
 for example [Grecha.js](https://github.com/tsoding/grecha.js).
 But I'd prefer to sacrifice just a little bit of that performance
 for convenience.
-
-## Current state
-
-This package and its companion `@state-ui/extra` are still in active development
-and you should expect breaking changes to the API.
 
 ## Documentation
 
