@@ -1,3 +1,4 @@
+import debug from './debug.js'
 import { State, StateEvent } from './types.js'
 
 const createState = <T>(initial: T): State<T> => {
@@ -17,6 +18,7 @@ const createState = <T>(initial: T): State<T> => {
       return state
     },
     emit: (event, ...args) => {
+      debug('state::emit', `state emitting event '${event}'`, { state, args })
       __eventHandlers[event].forEach(cb => (cb as Function)(...args))
       return state
     },

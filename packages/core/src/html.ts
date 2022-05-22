@@ -1,4 +1,5 @@
 import { isAttrib } from './attrib.js'
+import debug from './debug.js'
 import { isState } from './state.js'
 import { HTMLElement, Attrib, ElementEvents, State } from './types'
 import { id } from './utils.js'
@@ -139,8 +140,8 @@ const setupChildren = <N extends HTMLElement>(
       throw new Error(`Could not find child with id ${id}`)
     }
     child.parentNode?.replaceChild(comp.element, child)
-    comp.emit('mount')
     node.on('unmount', () => comp.emit('unmount'))
+    node.on('mount', () => comp.emit('mount'))
   }
 }
 
@@ -159,8 +160,8 @@ const setupAttribs = <N extends HTMLElement>(
     attrib.on('change', (newVal) => {
       child.setAttribute(attrib.name, newVal)
     })
-    attrib.emit('mount')
     node.on('unmount', () => attrib.emit('unmount'))
+    node.on('mount', () => attrib.emit('mount'))
   }
 }
 
@@ -179,8 +180,8 @@ const setupStates = <N extends HTMLElement>(
     state.on('change', (newVal, oldVal) => {
       oldVal.replace(newVal)
     })
-    state.value.emit('mount')
     node.on('unmount', () => state.value.emit('unmount'))
+    node.on('mount', () => state.value.emit('mount'))
   }
 }
 
@@ -218,6 +219,7 @@ const createHTML = <N extends Element>(
     type: 'html',
     element,
     replace: (newNode: HTMLElement) => {
+      debug('html::replace', 'html being replaced', { node, src, newNode })
       node.element.parentNode?.replaceChild(newNode.element, node.element)
       node.emit('unmount')
       newNode.emit('mount')
@@ -228,6 +230,7 @@ const createHTML = <N extends Element>(
       return node
     },
     emit: (eventName, ...args) => {
+      debug('html::emit', `html emitting event '${eventName}'`, { node, src, args })
       __eventsHandlers[eventName]?.forEach(f => (f as Function)(...args as any))
       return node
     },
