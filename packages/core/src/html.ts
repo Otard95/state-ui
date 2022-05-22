@@ -1,15 +1,16 @@
 import { isAttrib } from './attrib.js'
-import { HTMLElement, Attrib, ElementEvents } from './types'
+import { isState } from './state.js'
+import { HTMLElement, Attrib, ElementEvents, State } from './types'
 import { id } from './utils.js'
 
-type Renderable<N> = HTMLElement<N> | HTMLElement<N>[] | Attrib | string | number | boolean | undefined | null
+type Renderable<N extends Element = Element> = HTMLElement<N> | HTMLElement<N>[] | State<HTMLElement> | Attrib | string | number | boolean | undefined | null
 
 export const isHtml = (value: any): value is HTMLElement =>
   value !== null
   && typeof value === 'object'
   && value.type === 'html'
 
-const isRenderable = <N extends Element>(value: unknown): value is Renderable<N> => {
+const isRenderable = (value: unknown): value is Renderable => {
   switch (typeof value) {
     case 'string':
     case 'number':
@@ -18,16 +19,27 @@ const isRenderable = <N extends Element>(value: unknown): value is Renderable<N>
       return true
     case 'object':
       if (value === null) return true
-      if (Array.isArray(value)) return value.every(isRenderable)
       if (isHtml(value)) return true
       if (isAttrib(value)) return true
+      if (isState(value) && isHtml(value.value)) return true
+      if (Array.isArray(value)) return value.every(isRenderable)
   }
   return false
 }
 
-const createSrcForNode = <N extends Element>(
-  node: HTMLElement<N>,
-  children: Map<string, HTMLElement<N>>,
+const tryTestBetweenTags = (
+  src: string,
+  next: string
+): boolean => {
+  if (src.lastIndexOf('>') === -1 && src.lastIndexOf('<') === -1) return true
+  if (src.lastIndexOf('>') < src.lastIndexOf('<')) return false
+  if (next.indexOf('<') > next.indexOf('>')) return false
+  return true
+}
+
+const createSrcForNode = (
+  node: HTMLElement,
+  children: Map<string, HTMLElement>,
 ): string => {
   const compId = id('UI_NODE_')
   children.set(compId, node)
@@ -43,10 +55,21 @@ const createSrcForAttrib = (
   return ` data-ui-attr-id="${attribId}" ${attrib.name}="${attrib.value}"`
 }
 
-const createSrcForRenderable = <N extends Element>(
-  renderable: Renderable<N>,
+const createSrcForStates = (
+  state: State<HTMLElement>,
+  states: Map<string, State<HTMLElement>>,
+): string => {
+  const stateId = id('UI_STATE_')
+  states.set(stateId, state)
+  return `<${stateId}></${stateId}>`
+}
+
+const createSrcForRenderable = (
+  renderable: Renderable,
   children: Map<string, HTMLElement>,
-  attribs: Map<string, Attrib>
+  attribs: Map<string, Attrib>,
+  states: Map<string, State<HTMLElement>>,
+  { src, next }: { src: string, next: string }
 ): string => {
   switch (typeof renderable) {
     case 'string':
@@ -58,13 +81,23 @@ const createSrcForRenderable = <N extends Element>(
       if (isHtml(renderable))
         return createSrcForNode(renderable, children)
 
-      if (Array.isArray(renderable))
-        return renderable.map(
-          r => createSrcForRenderable(r, children, attribs)
-        ).join('')
-
       if (isAttrib(renderable))
         return createSrcForAttrib(renderable, attribs)
+      
+      if (isState(renderable) && tryTestBetweenTags(src, next))
+        return createSrcForStates(
+          renderable as State<HTMLElement>,
+          states
+        )
+
+      if (Array.isArray(renderable))
+        return renderable.map(r => createSrcForRenderable(
+          r,
+          children,
+          attribs,
+          states,
+          { src, next }
+        )).join(' ')
 
       return ''
 
@@ -73,11 +106,12 @@ const createSrcForRenderable = <N extends Element>(
   }
 }
 
-const createSrc = <N extends Element>(
+const createSrc = (
   children: Map<string, HTMLElement>,
   attribs: Map<string, Attrib>,
+  states: Map<string, State<HTMLElement>>,
   html: TemplateStringsArray,
-  comp: Renderable<N>[]
+  comp: Renderable[]
 ): string => {
   let src = html[0]
   for (let i = 1; i < html.length; i++) {
@@ -88,15 +122,15 @@ const createSrc = <N extends Element>(
       throw new Error(`Unexpected type ${typeof c} at:\n\t${
         src}\${...}${next}...\n\t${' '.repeat(src.length)}^^^^^^`)
 
-    src += `${createSrcForRenderable(c, children, attribs)}${next}`
+    src += `${createSrcForRenderable(c, children, attribs, states, { src, next })}${next}`
   }
   return src
 }
 
 const setupChildren = <N extends HTMLElement>(
   wrapper: HTMLDivElement,
-  node: HTMLElement,
-  children: Map<string, N>
+  node: N,
+  children: Map<string, HTMLElement>
 ) => {
   for (const [id, comp] of children) {
     const child = wrapper.getElementsByTagName(id)[0]
@@ -110,9 +144,9 @@ const setupChildren = <N extends HTMLElement>(
   }
 }
 
-const setupAttribs = (
+const setupAttribs = <N extends HTMLElement>(
   wrapper: HTMLDivElement,
-  node: HTMLElement,
+  node: N,
   attribs: Map<string, Attrib>
 ) => {
   for (const [id, attrib] of attribs) {
@@ -130,23 +164,44 @@ const setupAttribs = (
   }
 }
 
+const setupStates = <N extends HTMLElement>(
+  wrapper: HTMLDivElement,
+  node: N,
+  states: Map<string, State<HTMLElement>>
+) => {
+  for (const [id, state] of states) {
+    const child = wrapper.getElementsByTagName(id)[0]
+    if (child === null) {
+      console.debug({ node: wrapper, id, state })
+      throw new Error(`Could not find child with id ${id}`)
+    }
+    child.parentNode?.replaceChild(state.value.element, child)
+    state.on('change', (newVal, oldVal) => {
+      oldVal.replace(newVal)
+    })
+    state.value.emit('mount')
+    node.on('unmount', () => state.value.emit('unmount'))
+  }
+}
+
 const createHTML = <N extends Element>(
   html: TemplateStringsArray,
-  ...comp: Renderable<N>[]
+  ...comp: Renderable[]
 ): HTMLElement<N> => {
-  const children = new Map<string, HTMLElement<N>>()
+  const children = new Map<string, HTMLElement>()
   const attribs = new Map<string, Attrib>()
+  const states = new Map<string, State<HTMLElement>>()
 
   if (html.length === 0) {
     throw new Error('Unexpected end of input')
   }
 
-  const src = createSrc(children, attribs, html, comp)
+  const src = createSrc(children, attribs, states, html, comp)
 
   const wrapper = document.createElement('div')
   wrapper.innerHTML = src
 
-  const element: N | Error = wrapper.children.length > 0
+  const element = wrapper.children.length > 0
     ? wrapper.children[0] as N
     : wrapper.childNodes.length > 0
       ? wrapper.childNodes[0] as N
@@ -192,6 +247,7 @@ const createHTML = <N extends Element>(
 
   setupChildren(wrapper, node, children)
   setupAttribs(wrapper, node, attribs)
+  setupStates(wrapper, node, states)
 
   return node
 }
