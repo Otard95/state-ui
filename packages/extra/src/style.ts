@@ -26,7 +26,9 @@ const createStyle = <T>(
     if (!context) {
       return createAttrib('class', styleId)
         .on('unmount', () => {
-          document.head.removeChild(staticStyle.element)
+          // If this fail's it's because the style element is not in the DOM
+          // In which case we don't care about the error
+          try { document.head.removeChild(staticStyle.element) } catch {}
         })
         .on('mount', () => {
           document.head.appendChild(staticStyle.element)
@@ -58,8 +60,12 @@ const createStyle = <T>(
 
     return createAttrib('class', `${styleId} ${dynamicId}`) // `class="${styleId} ${dynamicId}"`
       .on('unmount', () => {
-        document.head.removeChild(staticStyle.element)
-        document.head.removeChild(dynamicStyle.element)
+        // If this fail's it's because the style element is not in the DOM
+        // In which case we don't care about the error
+        try {
+          document.head.removeChild(staticStyle.element)
+          document.head.removeChild(dynamicStyle.element)
+        } catch {}
       })
       .on('mount', () => {
         document.head.appendChild(staticStyle.element)
