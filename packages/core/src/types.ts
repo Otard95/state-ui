@@ -19,7 +19,7 @@ export interface HTMLElement<E = Element> extends EventEmitter<ElementEvents, HT
 export type Component<
   P extends Record<string, unknown> = {},
   N extends HTMLElement = HTMLElement
-> = N | ((props: P) => N)
+> = (props: P) => N
 
 export type StateEvent<T> = {
   change: [T, T]
