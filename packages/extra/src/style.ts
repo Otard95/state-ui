@@ -1,4 +1,4 @@
-import { utils, State, createAttrib, Attrib } from '@state-ui/core'
+import { utils, State, createAttrib, Attrib, is } from '@state-ui/core'
 import {
   parseStyles,
   StyleVariables,
@@ -22,8 +22,8 @@ const createStyle = <T>(
 
   const staticStyle = createStyleElement(styleId, compileStyles(staticStyleNodes))
 
-  return (state?: State<T>): Attrib => {
-    if (!state) {
+  return (context?: State<T> | T): Attrib => {
+    if (!context) {
       return createAttrib('class', styleId)
         .on('unmount', () => {
           document.head.removeChild(staticStyle.element)
@@ -39,14 +39,14 @@ const createStyle = <T>(
       compileStyles(
         dynamicStyleNodes,
         {
-          context: state.value,
+          context: is.state<T>(context) ? context.value : context,
           prepend: `.${dynamicId}`,
         }
       )
     )
     document.head.appendChild(dynamicStyle.element)
 
-    state.on('change', newVal => {
+    is.state<T>(context) && context.on('change', newVal => {
       updateStyleElement(dynamicStyle, compileStyles(
         dynamicStyleNodes,
         {

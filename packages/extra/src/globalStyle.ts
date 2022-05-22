@@ -1,5 +1,5 @@
 import { State } from '@state-ui/core/lib/types'
-import { utils } from '@state-ui/core'
+import { is, utils } from '@state-ui/core'
 import {
   parseStyles,
   StyleVariables,
@@ -28,20 +28,20 @@ const createGlobalStyle = <T>(
   const staticStyle = createStyleElement(styleId, compileStyles(staticStyleNodes))
   document.head.appendChild(staticStyle.element)
 
-  return (state?: State<T>): void => {
-    if (!state) return
+  return (context?: State<T> | T): void => {
+    if (!context) return
 
     const dynamicId = utils.id('UI_GLOBAL_STYLE_DYNAMIC_')
     const dynamicStyle = createStyleElement(
       dynamicId,
       compileStyles(
         dynamicStyleNodes,
-        { context: state.value }
+        { context: is.state<T>(context) ? context.value : context }
       )
     )
     document.head.appendChild(dynamicStyle.element)
 
-    state.on('change', newVal => {
+    is.state<T>(context) && context.on('change', newVal => {
       updateStyleElement(dynamicStyle, compileStyles(
         dynamicStyleNodes,
         {
