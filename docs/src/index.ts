@@ -1,3 +1,4 @@
+import { mount } from '@state-ui/core'
 import { createGlobalStyle } from '@state-ui/extra'
 
 import theme, { Theme } from './theme'
@@ -11,8 +12,9 @@ window.addEventListener('DOMContentLoaded', () => {
       margin: 0;
       padding: 0;
       background-color: ${theme => theme.colors.primary};
+      color: ${theme => theme.colors.secondary};
     }
   `(theme)
 
-  document.body.appendChild(layout())
+  mount(layout(), document.body)
 })

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "parcel test/index.html",
     "comp": "tsc -p .",
-    "comp:watch": "tsc -p . --watch",
+    "comp:watch": "tsc -p . --preserveWatchOutput --watch",
     "pub": "npm run comp && npm publish --access public",
     "test": "tsc -p . -noEmit"
   },

@@ -10,7 +10,11 @@ interface TokenVariable {
   type: 'variable'
   value: string
 }
-export type Token = TokenPath | TokenVariable
+interface TokenOptionalVariable {
+  type: 'optional-variable'
+  value: string
+}
+export type Token = TokenPath | TokenVariable | TokenOptionalVariable
 // ### Token
 
 // ### Routes

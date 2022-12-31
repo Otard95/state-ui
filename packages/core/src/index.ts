@@ -1,6 +1,7 @@
 import ui_html, { isHtml } from './html'
 import ui_createState, { isState } from './state'
 import ui_createAttrib, { isAttrib } from './attrib'
+import ui_mount from './mount'
 import { id as ui_id } from './utils'
 import ui_debug from './debug'
 export { HTMLElement, State, StateOf, Component, Attrib, EventEmitter } from './types'
@@ -13,6 +14,7 @@ export const is = {
   state: isState,
   attrib: isAttrib,
 }
+export const mount = ui_mount
 export const utils = {
   id: ui_id
 }
@@ -23,6 +25,7 @@ export default {
   createState: ui_createState,
   createAttrib: ui_createAttrib,
   is,
+  mount,
   utils: {
     id: ui_id,
   },

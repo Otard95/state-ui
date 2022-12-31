@@ -4,14 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "serve": "parcel src/index.html",
+    "serve": "parcel --no-cache src/index.html",
+    "clean": "rm -rf .parcel-cache dist",
+    "serve:clean": "npm run clean && npm run serve",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "UNLICENSED",
   "devDependencies": {
-    "@state-ui/core": "^1.0.2",
-    "@state-ui/extra": "^1.1.4",
+    "@state-ui/core": "file:../packages/core",
+    "@state-ui/extra": "file:../packages/extra",
     "parcel": "2.4.0",
     "typescript": "4.6.3"
   }

@@ -85,7 +85,7 @@ export const parseStyles = <T>(
     if (acc.trim().length !== 0 && !node.property && i < css.length - 1)
       throw new Error('Unexpected end of css')
     if (node.property && node.type === 'dynamic')
-      throw new Error('A single property may only have one dynamic variable')
+      throw new Error(`A single property may only have one dynamic variable\nYou may be missing a semicolon near: '${cssPart}'`)
 
     if (node.property) {
       node.type = 'dynamic'

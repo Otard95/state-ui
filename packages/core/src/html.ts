@@ -2,7 +2,7 @@ import { isAttrib } from './attrib.js'
 import debug from './debug.js'
 import { isState } from './state.js'
 import { HTMLElement, Attrib, ElementEvents, State } from './types'
-import { id } from './utils.js'
+import { escape, id } from './utils.js'
 
 type Renderable<N extends Element = Element> = HTMLElement<N> | HTMLElement<N>[] | State<HTMLElement> | Attrib | string | number | boolean | undefined | null
 
@@ -76,7 +76,7 @@ const createSrcForRenderable = (
     case 'string':
     case 'number':
     case 'boolean':
-      return renderable.toString()
+      return escape(renderable.toString())
 
     case 'object':
       if (isHtml(renderable))
@@ -84,7 +84,7 @@ const createSrcForRenderable = (
 
       if (isAttrib(renderable))
         return createSrcForAttrib(renderable, attribs)
-      
+
       if (isState(renderable) && tryTestBetweenTags(src, next))
         return createSrcForStates(
           renderable as State<HTMLElement>,
@@ -220,8 +220,8 @@ const createHTML = <N extends Element>(
     element,
     replace: (newNode: HTMLElement) => {
       debug('html::replace', 'html being replaced', { node, src, newNode })
-      node.element.parentNode?.replaceChild(newNode.element, node.element)
       node.emit('unmount')
+      node.element.parentNode?.replaceChild(newNode.element, node.element)
       newNode.emit('mount')
       return newNode
     },

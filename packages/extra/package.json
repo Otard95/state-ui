@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "comp": "tsc -p .",
-    "comp:watch": "tsc -p . --watch",
+    "comp:watch": "tsc -p . --preserveWatchOutput --watch",
     "pub": "npm run comp && npm publish",
     "test": "jest",
     "test:watch": "jest --watch"
@@ -29,7 +29,7 @@
     "@state-ui/core": ">= 1.1.2 < 2.0.0"
   },
   "devDependencies": {
-    "@state-ui/core": "1.1.2",
+    "@state-ui/core": "file:../core",
     "@types/jest": "27.5.1",
     "@types/node": "17.0.35",
     "ts-jest": "28.0.2",
